@@ -1,8 +1,8 @@
 package service
 
 import (
-	"MonsterSirenDownload/domain/model"
-	"MonsterSirenDownload/infra/ms/repo"
+	"monster-siren-record-puller/domain/model"
+	"monster-siren-record-puller/infra/ms/repo"
 	"net/http"
 	"strings"
 )

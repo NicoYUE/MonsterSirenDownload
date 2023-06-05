@@ -1,10 +1,10 @@
 package repo
 
 import (
-	"MonsterSirenDownload/infra/ms/response"
 	"encoding/json"
 	"fmt"
 	"io"
+	"monster-siren-record-puller/infra/ms/response"
 	"net/http"
 )
 

@@ -1,11 +1,11 @@
 package main
 
 import (
-	"MonsterSirenDownload/domain/model"
-	"MonsterSirenDownload/domain/service"
-	"MonsterSirenDownload/infra/ms/repo"
-	"MonsterSirenDownload/utility"
 	"fmt"
+	"monster-siren-record-puller/domain/model"
+	"monster-siren-record-puller/domain/service"
+	"monster-siren-record-puller/infra/ms/repo"
+	"monster-siren-record-puller/utility"
 	"net/http"
 	"sync"
 )
