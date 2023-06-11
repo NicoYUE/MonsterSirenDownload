@@ -29,6 +29,7 @@ func (service MonsterSirenService) RetrieveAlbums() []model.Album {
 			AlbumId:  obj.Cid,
 			Name:     trimmedName,
 			CoverUrl: obj.CoverUrl,
+			Artists:  obj.Artistes,
 		}
 		albums[idx] = album
 	}

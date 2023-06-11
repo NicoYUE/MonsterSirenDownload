@@ -19,7 +19,11 @@ func Mkdir(path string, perm os.FileMode) error {
 	return nil
 }
 
-func WriteResponse2File(filename string, destDirectory string, response *http.Response) {
+func findBinInEnv(name string) {
+
+}
+
+func WriteResponse2File(filename string, destDirectory string, response *http.Response) string {
 
 	contentType := response.Header.Get("content-type")
 	outputPath := destDirectory + filename
@@ -41,11 +45,19 @@ func WriteResponse2File(filename string, destDirectory string, response *http.Re
 	if err != nil {
 		print(err)
 	}
-	defer file.Close()
 
 	_, err = io.Copy(file, response.Body)
 	if err != nil {
-		fmt.Printf("ERROR COpying")
+		fmt.Printf("ERROR Copying")
 	}
-	defer response.Body.Close()
+
+	file.Close()
+	response.Body.Close()
+
+	// Special case for wav files (which needs to be created beforehand)
+	if contentType == "audio/wav" {
+		return WavToMp3(outputPath)
+	}
+
+	return outputPath
 }
