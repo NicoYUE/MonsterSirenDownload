@@ -1,12 +1,13 @@
 package main
 
 import (
-	"MonsterSirenDownload/domain/model"
-	"MonsterSirenDownload/domain/service"
-	"MonsterSirenDownload/infra/ms/repo"
-	"MonsterSirenDownload/utility"
 	"fmt"
+	"monster-siren-record-puller/domain/model"
+	"monster-siren-record-puller/domain/service"
+	"monster-siren-record-puller/infra/ms/repo"
+	"monster-siren-record-puller/utility"
 	"net/http"
+	"os"
 	"sync"
 )
 
@@ -18,6 +19,7 @@ var msrService = service.NewMonsterSirenService(client)
 var mediaRepository = repo.NewMonsterSirenMediaRepository(client)
 
 func main() {
+
 	fmt.Printf("Hello World")
 
 	err := utility.Mkdir(BaseDirectory, 0755)
@@ -63,18 +65,28 @@ func DownloadAlbumSongs(album model.Album) {
 	utility.Mkdir(albumPath, 0755)
 
 	coverResp, _ := mediaRepository.RetrieveImage(album.CoverUrl)
-	utility.WriteResponse2File(album.Name, albumPath, coverResp)
+	coverPath := utility.WriteResponse2File(album.Name, albumPath, coverResp)
+	pictureFrame := utility.PictureFrame(coverPath)
+	os.Remove(coverPath)
 
 	for _, song := range songs {
 		fmt.Printf("Downloading : %s\n", song.Name)
 
 		audioResp, _ := mediaRepository.RetrieveAudio(song.SourceUrl)
-		utility.WriteResponse2File(song.Name, albumPath, audioResp)
+		audioPath := utility.WriteResponse2File(song.Name, albumPath, audioResp)
 
 		if song.LyricUrl != "" {
 			lyricResp, _ := mediaRepository.RetrieveLyric(song.LyricUrl)
 			utility.WriteResponse2File(song.Name, albumPath, lyricResp)
 		}
+
+		utility.SetID3Tags(audioPath, model.SongMetadata{
+			Title:        song.Name,
+			AlbumName:    album.Name,
+			Artists:      song.Artists,
+			AlbumArtists: album.Artists,
+			PictureFrame: pictureFrame,
+		})
 
 		fmt.Printf("---- Finished : %s\n", song.Name)
 	}

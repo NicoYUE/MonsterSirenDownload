@@ -1,8 +1,8 @@
 package service
 
 import (
-	"MonsterSirenDownload/domain/model"
-	"MonsterSirenDownload/infra/ms/repo"
+	"monster-siren-record-puller/domain/model"
+	"monster-siren-record-puller/infra/ms/repo"
 	"net/http"
 	"strings"
 )
@@ -29,6 +29,7 @@ func (service MonsterSirenService) RetrieveAlbums() []model.Album {
 			AlbumId:  obj.Cid,
 			Name:     trimmedName,
 			CoverUrl: obj.CoverUrl,
+			Artists:  obj.Artistes,
 		}
 		albums[idx] = album
 	}
