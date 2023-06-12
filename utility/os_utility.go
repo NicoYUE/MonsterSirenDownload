@@ -19,10 +19,6 @@ func Mkdir(path string, perm os.FileMode) error {
 	return nil
 }
 
-func findBinInEnv(name string) {
-
-}
-
 func WriteResponse2File(filename string, destDirectory string, response *http.Response) string {
 
 	contentType := response.Header.Get("content-type")

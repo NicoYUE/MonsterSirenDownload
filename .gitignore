@@ -22,6 +22,8 @@ go.work
 go.mod
 go.sum
 
-.idea
+.idea/
 
+# Applicative
 MSR/
+.cache.gob

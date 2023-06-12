@@ -8,4 +8,4 @@ in .mp3 format with basic metadata.
 
 # TODO
 - Tests
-- Local cache to ignore files that were already pulled
+- Provide compiled .exe for monster-siren-record-puller with embed FFMPEG

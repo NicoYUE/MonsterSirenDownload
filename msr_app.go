@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"monster-siren-record-puller/cache"
 	"monster-siren-record-puller/domain/model"
 	"monster-siren-record-puller/domain/service"
 	"monster-siren-record-puller/infra/ms/repo"
@@ -17,10 +18,11 @@ const DefaultConcurrency = 5
 var client = http.Client{}
 var msrService = service.NewMonsterSirenService(client)
 var mediaRepository = repo.NewMonsterSirenMediaRepository(client)
+var albumCache = cache.NewAlbumCache()
 
 func main() {
 
-	fmt.Printf("Hello World")
+	fmt.Printf("Initiating MSR downloading \n")
 
 	err := utility.Mkdir(BaseDirectory, 0755)
 	if err != nil {
@@ -28,11 +30,6 @@ func main() {
 	} else {
 		fmt.Println("Created Directory: ", BaseDirectory)
 	}
-
-	//exampleUrl := "https://res01.hycdn.cn/b0f72316846ce63e1e4f6a7ad7cd965c/647D21AC/siren/audio/20230427/aaf6eb4ada3c647e8cb31b85a569c9c0.wav"
-	//
-	//response, err := mediaRepository.RetrieveAudio(exampleUrl)
-	//utility.WriteResponse2File("DormantCraving", BaseDirectory+"DormantCraving/", response)
 
 	albums := msrService.RetrieveAlbums()
 	AsyncAlbumDownload(albums)
@@ -60,9 +57,14 @@ func AsyncAlbumDownload(albums []model.Album) {
 
 func DownloadAlbumSongs(album model.Album) {
 	fmt.Printf("Album: %s\n", album.Name)
+
 	songs := msrService.RetrieveAlbumSongs(album)
+
 	albumPath := fmt.Sprintf(BaseDirectory+"%s/", album.Name)
-	utility.Mkdir(albumPath, 0755)
+
+	if !albumCache.AlbumExists(album.Name) {
+		utility.Mkdir(albumPath, 0755)
+	}
 
 	coverResp, _ := mediaRepository.RetrieveImage(album.CoverUrl)
 	coverPath := utility.WriteResponse2File(album.Name, albumPath, coverResp)
@@ -70,24 +72,28 @@ func DownloadAlbumSongs(album model.Album) {
 	os.Remove(coverPath)
 
 	for _, song := range songs {
-		fmt.Printf("Downloading : %s\n", song.Name)
+		fmt.Printf("Downloading : %s ---- Album: %s\n", song.Name, album.Name)
 
-		audioResp, _ := mediaRepository.RetrieveAudio(song.SourceUrl)
-		audioPath := utility.WriteResponse2File(song.Name, albumPath, audioResp)
+		if !albumCache.SongExists(album.Name, song.Name) {
+			audioResp, _ := mediaRepository.RetrieveAudio(song.SourceUrl)
+			audioPath := utility.WriteResponse2File(song.Name, albumPath, audioResp)
 
-		if song.LyricUrl != "" {
-			lyricResp, _ := mediaRepository.RetrieveLyric(song.LyricUrl)
-			utility.WriteResponse2File(song.Name, albumPath, lyricResp)
+			if song.LyricUrl != "" {
+				lyricResp, _ := mediaRepository.RetrieveLyric(song.LyricUrl)
+				utility.WriteResponse2File(song.Name, albumPath, lyricResp)
+			}
+
+			utility.SetID3Tags(audioPath, model.SongMetadata{
+				Title:        song.Name,
+				AlbumName:    album.Name,
+				Artists:      song.Artists,
+				AlbumArtists: album.Artists,
+				PictureFrame: pictureFrame,
+			})
+			fmt.Printf("---- Finished : %s\n", song.Name)
+		} else {
+			fmt.Printf("Song was already download, skipping \n")
 		}
-
-		utility.SetID3Tags(audioPath, model.SongMetadata{
-			Title:        song.Name,
-			AlbumName:    album.Name,
-			Artists:      song.Artists,
-			AlbumArtists: album.Artists,
-			PictureFrame: pictureFrame,
-		})
-
-		fmt.Printf("---- Finished : %s\n", song.Name)
+		albumCache.Cache(album.Name, song.Name)
 	}
 }
