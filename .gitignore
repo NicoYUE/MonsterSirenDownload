@@ -22,7 +22,8 @@ go.work
 go.mod
 go.sum
 
-.idea/
+.idea
+.DS_Store
 
 # Applicative
 MSR/
