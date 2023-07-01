@@ -3,6 +3,7 @@ package service
 import (
 	"monster-siren-record-puller/domain/model"
 	"monster-siren-record-puller/infra/ms/repo"
+	"monster-siren-record-puller/utility"
 	"net/http"
 	"strings"
 )
@@ -41,8 +42,8 @@ func (service MonsterSirenService) RetrieveSong(album model.Album, songId string
 	songResponse := service.MonsterSirenRepository.RetrieveSong(songId)
 
 	return model.Song{
-		SongId:    songResponse.SongId,
-		Name:      songResponse.Name,
+		SongId:    songResponse.Cid,
+		Name:      utility.WinCharacter(songResponse.Name),
 		AlbumName: album.Name,
 		CoverUrl:  album.CoverUrl,
 		SourceUrl: songResponse.SourceUrl,

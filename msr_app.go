@@ -72,24 +72,35 @@ func DownloadAlbumSongs(album model.Album) {
 	os.Remove(coverPath)
 
 	for _, song := range songs {
+		if song.SongId == "048709" {
+			fmt.Printf("Special case - Skipping %s", song.Name)
+			continue
+		}
+
 		fmt.Printf("Downloading : %s ---- Album: %s\n", song.Name, album.Name)
 
 		if !albumCache.SongExists(album.Name, song.Name) {
 			audioResp, _ := mediaRepository.RetrieveAudio(song.SourceUrl)
 			audioPath := utility.WriteResponse2File(song.Name, albumPath, audioResp)
 
-			if song.LyricUrl != "" {
-				lyricResp, _ := mediaRepository.RetrieveLyric(song.LyricUrl)
-				utility.WriteResponse2File(song.Name, albumPath, lyricResp)
-			}
+			//if song.LyricUrl != "" {
+			//	lyricResp, _ := mediaRepository.RetrieveLyric(song.LyricUrl)
+			//	utility.WriteResponse2File(song.Name, albumPath, lyricResp)
+			//}
 
-			utility.SetID3Tags(audioPath, model.SongMetadata{
+			err := utility.SetID3Tags(audioPath, model.SongMetadata{
 				Title:        song.Name,
 				AlbumName:    album.Name,
 				Artists:      song.Artists,
 				AlbumArtists: album.Artists,
 				PictureFrame: pictureFrame,
 			})
+
+			if err != nil {
+				fmt.Printf("error! %s when trying to set ID tags for Song: %s", err, song.Name)
+				return
+			}
+
 			fmt.Printf("---- Finished : %s\n", song.Name)
 		} else {
 			fmt.Printf("Song was already download, skipping \n")

@@ -11,19 +11,20 @@ import (
 	"strings"
 )
 
-func SetID3Tags(filename string, metadata model.SongMetadata) {
-	tag, _ := id3v2.Open(filename, id3v2.Options{Parse: true})
+func SetID3Tags(filename string, metadata model.SongMetadata) error {
+	tag, err := id3v2.Open(filename, id3v2.Options{Parse: false})
+	if err != nil {
+		log.Println("Error when creating Metadata Tags: ", err)
+	}
 	defer tag.Close()
 
+	tag.SetDefaultEncoding(id3v2.EncodingUTF8)
 	tag.SetTitle(metadata.Title)
 	tag.SetAlbum(metadata.AlbumName)
 	tag.SetArtist(strings.Join(metadata.Artists, ","))
 	tag.AddAttachedPicture(metadata.PictureFrame)
 
-	err := tag.Save()
-	if err != nil {
-		log.Fatal("Error while saving a tag: ", err)
-	}
+	return tag.Save()
 }
 
 func PictureMime(filename string) (string, error) {
